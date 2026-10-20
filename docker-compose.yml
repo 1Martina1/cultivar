@@ -1,0 +1,11 @@
+# I "servizi" sono i container da avviare
+services:
+  # Nome del servizio: lo scegli tu
+  cultivar:
+    # Costruisci l'immagine dal Dockerfile che sta in questa cartella
+    build: .
+    # Nome del container (come --name)
+    container_name: cultivar-compose
+    # Porte, PC:container (come -p)
+    ports:
+      - "8080:8080"

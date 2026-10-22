@@ -1,5 +1,5 @@
 # Parti da un'immagine base che ha già Java 21 dentro
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:25-jre
 
 # Copia dentro il mio jar e chiamalo app.jar
 COPY target/cultivar-0.0.1-SNAPSHOT.jar app.jar

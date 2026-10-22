@@ -12,7 +12,6 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 public class StatisticheTerrenoDto {
-
     private Long numeroCultivar;
     private List<String> specie;
     private Double phMin;

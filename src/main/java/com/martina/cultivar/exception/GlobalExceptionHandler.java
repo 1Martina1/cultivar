@@ -1,6 +1,7 @@
 package com.martina.cultivar.exception;
 
 import com.martina.cultivar.vivaio.exception.PiantaNotFoundException;
+import com.martina.cultivar.vivaio.exception.ProdottoNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,6 +40,15 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(PiantaNotFoundException.class)
     public ResponseEntity<String> gestisciPiantaNonTrovata(PiantaNotFoundException ex) {
+        log.warn("404 - {}", ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ex.getMessage());
+    }
+
+    @ExceptionHandler(ProdottoNotFoundException.class)
+    public ResponseEntity<String> gestisciProdottoNonTrovato(ProdottoNotFoundException ex) {
         log.warn("404 - {}", ex.getMessage());
 
         return ResponseEntity

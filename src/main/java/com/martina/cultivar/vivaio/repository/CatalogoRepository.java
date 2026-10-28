@@ -1,9 +1,7 @@
 package com.martina.cultivar.vivaio.repository;
 
-import com.martina.cultivar.vivaio.dto.Attrezzo;
-import com.martina.cultivar.vivaio.dto.Pianta;
-import com.martina.cultivar.vivaio.dto.Prodotto;
-import com.martina.cultivar.vivaio.dto.Seme;
+import com.martina.cultivar.vivaio.dto.*;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -44,4 +42,9 @@ public class CatalogoRepository {
         return new ArrayList<>(catalogo.values());
     }
 
+    // Salva (o aggiorna) una pianta nel magazzino.
+    // Se l'id esiste già, put SOSTITUISCE la vecchia pianta con questa.
+    public void salva(Pianta pianta) {
+        catalogo.put(pianta.id(), pianta);   // chiave = l'id della pianta, valore = la pianta intera
+    }
 }

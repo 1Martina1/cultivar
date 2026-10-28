@@ -204,4 +204,15 @@ public class CultivarController {
         return cultivarService.cultivarDiUnTerrenoInClassifica(nomeTerreno);
 
     }
+
+    @GetMapping("/consigliate")
+    @Operation(summary = "Dato il nome di un terreno e un pH, restituisce le cultivar di quel terreno che sopportano quel pH", description = "Dato il nome di un terreno e un pH, restituisce le cultivar di quel terreno che sopportano quel pH. Per ognuna c’è il margine, cioè quanto il pH è lontano dal bordo più vicino del suo intervallo, e la lista va dalla più sicura alla più al limite.")
+    @ApiResponse(responseCode = "200", description = "Ok")
+    @ApiResponse(responseCode = "400", description = "Ph non valido")
+    @ApiResponse(responseCode = "404", description = "Nessuna cultivar trovata per il terreno: ")
+    public List<CultivarConsigliataDto> cultivarDelterrenoCheSopportanoIlPh(@RequestParam String nomeTerreno, @RequestParam Double ph) {
+
+        return cultivarService.cultivarDelterrenoCheSopportanoIlPh(nomeTerreno, ph);
+
+    }
 }

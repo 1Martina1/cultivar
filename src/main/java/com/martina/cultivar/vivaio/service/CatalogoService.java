@@ -2,10 +2,14 @@ package com.martina.cultivar.vivaio.service;
 
 import com.martina.cultivar.entity.Cultivar;
 import com.martina.cultivar.vivaio.dto.*;
+import com.martina.cultivar.vivaio.exception.AcquistoNonValidoException;
 import com.martina.cultivar.vivaio.exception.ProdottoNotFoundException;
+import com.martina.cultivar.vivaio.exception.ScortaInsufficienteException;
 import com.martina.cultivar.vivaio.repository.CatalogoRepository;
+import com.martina.cultivar.vivaio.repository.PiantaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.util.Comparator;
 import java.util.List;
@@ -20,6 +24,7 @@ import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 @RequiredArgsConstructor
 public class CatalogoService {
     private final CatalogoRepository catalogoRepository;
+    private final PiantaRepository piantaRepository;
 
     public SchedaProdotto schedaProdotto(Long id) {
 
@@ -236,5 +241,54 @@ public class CatalogoService {
                         .reversed()
                         .thenComparing(DaRiordinare::getNome))
                 .toList();
+    }
+
+    public Scontrino acquista(Long id, RichiestaAcquisto richiesta) {
+
+        if(richiesta.getQuantita() <= 0){
+            throw new AcquistoNonValidoException("La quantità deve essere maggiore di zero");
+        }
+
+        Prodotto prodotto = catalogoRepository.findById(id)
+                .orElseThrow(() -> new ProdottoNotFoundException("Prodotto non trovato con id: " + id));
+
+        if (!(prodotto instanceof Pianta pianta)) {
+            throw new AcquistoNonValidoException("Si possono acquistare solo piante");
+        }
+
+        String nomePianta = pianta.nome();
+
+        if(richiesta.getQuantita() > pianta.quantita()){
+            throw new ScortaInsufficienteException("Disponibili solo " + pianta.quantita() + " pezzi di " + nomePianta);
+        }
+
+        Integer quantitaAcquistata = richiesta.getQuantita();
+        double prezzoUnitario = prodotto.prezzo();
+        double totale = prezzoUnitario * quantitaAcquistata;
+        Integer quantitaRimasta = pianta.quantita() - quantitaAcquistata;
+
+        // Pianta è un record, quindi immutabile: non possiamo cambiarle la quantità.
+        // Creiamo una pianta NUOVA, uguale alla vecchia tranne la quantità.
+        // Ordine del costruttore: id, nome, tipo, prezzo, quantita
+        Pianta piantaAggiornata = new Pianta(
+                pianta.id(),        // stesso id → stesso "cassetto" nella Map
+                pianta.nome(),      // stesso nome
+                pianta.tipo(),      // stesso tipo
+                pianta.prezzo(),    // stesso prezzo
+                quantitaRimasta     // unica cosa che cambia: i pezzi rimasti dopo l'acquisto
+        );
+
+        // La rimettiamo nel magazzino: put sulla stessa chiave sostituisce la vecchia
+        catalogoRepository.salva(piantaAggiornata);
+
+        Scontrino scontrino = new Scontrino();
+        scontrino.setNomePianta(nomePianta);
+        scontrino.setPrezzoUnitario(prezzoUnitario);
+        scontrino.setTotale(totale);
+        scontrino.setQuantitaRimasta(quantitaRimasta);
+        scontrino.setQuantitaAcquistata(quantitaAcquistata);
+
+        return scontrino;
+
     }
 }

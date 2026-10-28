@@ -70,6 +70,12 @@
 			<artifactId>h2</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+		<!-- Driver JDBC di Oracle: la libreria che permette a Java di collegarsi a un database Oracle -->
+		<dependency>
+			<groupId>com.oracle.database.jdbc</groupId>   <!-- l'organizzazione che lo pubblica: Oracle -->
+			<artifactId>ojdbc11</artifactId>              <!-- il driver; "11" = compatibile con Java 11 e successivi (quindi anche il tuo 25) -->
+			<scope>runtime</scope>                         <!-- serve solo quando l'app GIRA, non per compilare: nel codice non lo usi mai direttamente -->
+		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>

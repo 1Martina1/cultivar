@@ -1,11 +1,15 @@
 package com.martina.cultivar.vivaio.controller;
 
+import com.martina.cultivar.dto.CultivarDto;
+import com.martina.cultivar.dto.InserimentoCultivarDto;
 import com.martina.cultivar.vivaio.dto.*;
 import com.martina.cultivar.vivaio.service.CatalogoService;
 import com.martina.cultivar.vivaio.service.PiantaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -73,6 +77,18 @@ public class VivaioController {
     public List<DaRiordinare> prodottiDaRiordinare () {
 
         return catalogoService.prodottiDaRiordinare();
+
+    }
+
+    @PostMapping("/catalogo/{id}/acquisto")
+    @Operation(summary = "L’API controlla che l’acquisto sia possibile, scala i pezzi dal magazzino e restituisce lo scontrino", description = "Un cliente compra un certo numero di pezzi di una pianta. L’API controlla che l’acquisto sia possibile, scala i pezzi dal magazzino e restituisce lo scontrino: cosa ha comprato, quanto ha speso e quanti pezzi restano.")
+    @ApiResponse(responseCode = "200")
+    @ApiResponse(responseCode = "404", description = "Prodotto non trovato")
+    @ApiResponse(responseCode = "400", description = "Quantità non valida (zero o negativa), oppure il prodotto non è una pianta")
+    @ApiResponse(responseCode = "409", description = "Disponibili solo X pezzi di NOME")
+    public Scontrino acquistoEScontrino(@PathVariable Long id, @RequestBody RichiestaAcquisto richiesta){
+
+        return catalogoService.acquista(id, richiesta);
 
     }
 }

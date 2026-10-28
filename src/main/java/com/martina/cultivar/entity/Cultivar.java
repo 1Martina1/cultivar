@@ -13,7 +13,11 @@ import lombok.Setter;
 public class Cultivar {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE,      // l'id lo prendo da una SEQUENCE...
+            generator = "seqCultivar")               // ...quella definita qui sotto con questo nome
+    @SequenceGenerator(name = "seqCultivar",                 // nome "interno", usato solo per collegarla al @GeneratedValue
+            sequenceName = "SEQ_CULTIVAR",        // nome VERO della sequence nel database
+            allocationSize = 1)                   // quanti numeri chiedo alla sequence ogni volta
     private Long id;
 
     @Column(nullable = false)
@@ -22,10 +26,10 @@ public class Cultivar {
     @Column(nullable = false)
     private String specie;
 
-    @Column
+    @Column(columnDefinition = "NUMBER(3,1)")
     private Double phMin;
 
-    @Column
+    @Column(columnDefinition = "NUMBER(3,1)")
     private Double phMax;
 
     @Enumerated(EnumType.STRING)

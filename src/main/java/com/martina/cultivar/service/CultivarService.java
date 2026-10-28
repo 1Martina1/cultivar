@@ -12,6 +12,7 @@ import com.martina.cultivar.exception.TipoTerrenoNotFoundException;
 import com.martina.cultivar.mapper.CultivarMapper;
 import com.martina.cultivar.repository.CultivarRepository;
 import com.martina.cultivar.repository.TipoTerrenoRepository;
+import com.martina.cultivar.vivaio.dto.DaRiordinare;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -561,11 +562,11 @@ public class CultivarService {
         List<Cultivar> cultivars = cultivarRepository.findByTipoTerrenoNomeIgnoreCase(nomeTerreno);
 
         List<CultivarDto> classifica =  cultivars.stream()
-                                        .sorted(Comparator.comparingDouble((Cultivar c) -> c.getPhMax() - c.getPhMin())
-                                        .reversed()                                         // rovesciato: dalla più ampia alla più stretta
-                                        .thenComparing(Cultivar::getNome))                  // spareggio: a pari ampiezza, il nome alfabetico
-                                        .map(cultivarMapper::cultivarToCultivarDto)
-                                        .toList();
+                .sorted(Comparator.comparingDouble((Cultivar c) -> c.getPhMax() - c.getPhMin())
+                        .reversed()                                         // rovesciato: dalla più ampia alla più stretta
+                        .thenComparing(Cultivar::getNome))                  // spareggio: a pari ampiezza, il nome alfabetico
+                .map(cultivarMapper::cultivarToCultivarDto)
+                .toList();
 
         classificaCultivarDto.setNomeTerreno(tipoTerreno.getNome());
         classificaCultivarDto.setNumeroCultivar((long) cultivars.size());
@@ -575,4 +576,40 @@ public class CultivarService {
         return classificaCultivarDto;
     }
 
+    @Transactional(readOnly = true)
+    public List<CultivarConsigliataDto> cultivarDelterrenoCheSopportanoIlPh(String nomeTerreno, Double ph) {
+
+        if(ph > 14 || ph < 0){
+            throw new PhNonValidoException("Il ph non può essere minore di 0 o maggiore di 14");
+        }
+
+        TipoTerreno tipoTerreno = tipoTerrenoRepository.findByNomeIgnoreCase(nomeTerreno)
+                .orElseThrow(() -> new TipoTerrenoNotFoundException("Terreno non trovato: " + nomeTerreno));
+
+        List<Cultivar> cultivarAdatte = cultivarRepository.findAdatte(nomeTerreno, ph);
+
+        if(cultivarAdatte.isEmpty()){
+            throw  new CultivarNotFoundException("nessuna cultivar adatta per  il terreno: " + tipoTerreno.getNome() + " e il ph: " + ph );
+        }
+
+        return cultivarAdatte.stream()                                    // scorro le cultivar adatte, una alla volta
+                .map(c -> {                                               // per ogni cultivar c creo il suo DTO
+                    CultivarConsigliataDto dto = new CultivarConsigliataDto();  // DTO vuoto (è una classe: si riempie con i set)
+                    dto.setNome(c.getNome());                             // nome della cultivar
+                    dto.setSpecie(c.getSpecie());                         // specie
+                    dto.setPhMin(c.getPhMin());                           // bordo basso dell'intervallo
+                    dto.setPhMax(c.getPhMax());                           // bordo alto dell'intervallo
+
+                    double distanzaDalMinimo = ph - c.getPhMin();         // quanto il ph è lontano dal bordo BASSO (6.8 - 6.5 = 0.3)
+                    double distanzaDalMassimo = c.getPhMax() - ph;        // quanto il ph è lontano dal bordo ALTO  (8.0 - 6.8 = 1.2)
+                    double margine = Math.min(distanzaDalMinimo, distanzaDalMassimo);  // il bordo più vicino è il rischio → 0.3
+
+                    dto.setMargine(Math.round(margine * 10) / 10.0);      // arrotondo a 1 decimale: 0.2999... → 2.999... → 3 → 0.3
+                    return dto;                                           // con le graffe serve il return
+                })
+                .sorted(Comparator.comparing(CultivarConsigliataDto::getMargine)  // ordino per margine...
+                        .reversed()                                               // ...dal più grande (più sicura) al più piccolo
+                        .thenComparing(CultivarConsigliataDto::getNome))          // a parità di margine, per nome A→Z
+                .toList();                                                // trasformo lo stream in lista
+    };
 }

@@ -612,4 +612,36 @@ public class CultivarService {
                         .thenComparing(CultivarConsigliataDto::getNome))          // a parità di margine, per nome A→Z
                 .toList();                                                // trasformo lo stream in lista
     };
+
+    @Transactional(readOnly = true)
+    public List<RiepilogoTerrenoDto> riepilogoCultivarPerTerreno() {
+
+        List<TipoTerreno> tipiTerreno = tipoTerrenoRepository.findAll();
+
+        return tipiTerreno.stream().map(
+                t -> {
+                    RiepilogoTerrenoDto riepilogoTerrenoDto = new RiepilogoTerrenoDto();
+                    List<Cultivar> cultivars = cultivarRepository.findByTipoTerrenoNomeIgnoreCase(t.getNome());
+
+                    riepilogoTerrenoDto.setNomeTerreno(t.getNome());
+                    riepilogoTerrenoDto.setNomiCultivar(cultivars.stream().map(Cultivar::getNome).sorted().collect(Collectors.toList()));
+                    riepilogoTerrenoDto.setNumeroCultivar(cultivars.stream().count());
+                    double phMaxMedio = cultivars.stream()
+                            .mapToDouble(Cultivar::getPhMax)          // da ogni Cultivar prendo il phMax → stream di numeri
+                            .average()                                // media: OptionalDouble, VUOTO se non ci sono numeri
+                            .orElse(0.0);                             // se è vuoto (TORBOSO) metto 0.0
+                    riepilogoTerrenoDto.setPhMaxMedio(Math.round(phMaxMedio * 100) / 100.0);  // arrotondo a 2 decimali: ×100, round, ÷100.0
+
+                    return riepilogoTerrenoDto;
+                }
+        )
+        .sorted(Comparator.comparing(RiepilogoTerrenoDto::getNumeroCultivar)  // ordino per numero di cultivar...
+                .reversed()                                   // ...dal più grande (reversed subito dopo il comparing)
+                .thenComparing(RiepilogoTerrenoDto::getNomeTerreno))  // a parità, per nome A→Z ← qui si CHIUDE il sorted
+        .toList();
+
+    };
+
+
+
 }

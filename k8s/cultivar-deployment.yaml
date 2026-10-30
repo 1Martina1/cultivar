@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cultivar                     # nome del Deployment: i pod si chiameranno cultivar-xxxxx-yyyyy
+  labels:
+    app: cultivar
+spec:
+  replicas: 2                        # voglio sempre 2 copie accese (2 e non 3: il PC ha già parecchio da fare)
+  selector:
+    matchLabels:
+      app: cultivar                  # i miei pod sono quelli con app=cultivar
+  template:
+    metadata:
+      labels:
+        app: cultivar                # ogni pod nasce con questa etichetta
+    spec:
+      containers:
+        - name: cultivar
+          image: cultivar:1.1                # l'immagine che hai appena caricato nel cluster
+          imagePullPolicy: IfNotPresent      # "scaricala da internet solo se NON c'è già": c'è, l'abbiamo caricata con kind load
+          ports:
+            - containerPort: 8080            # Spring Boot ascolta sulla 8080

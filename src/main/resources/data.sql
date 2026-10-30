@@ -20,4 +20,4 @@ VALUES (NEXT VALUE FOR SEQ_CULTIVAR, 'San Marzano', 'Pomodoro', 6.0, 7.0, 'ALTO'
 INSERT INTO cultivar (id, nome, specie, ph_min, ph_max, fabbisogno_idrico, tipo_terreno_id)
 VALUES (NEXT VALUE FOR SEQ_CULTIVAR, 'Senatore Cappelli', 'Grano duro', 6.0, 8.0, 'BASSO', (SELECT id FROM tipo_terreno WHERE nome = 'ARGILLOSO'));
 INSERT INTO cultivar (id, nome, specie, ph_min, ph_max, fabbisogno_idrico, tipo_terreno_id)
-VALUES (NEXT VALUE FOR SEQ_CULTIVAR, 'Carota Nantese', 'Carota', 6.0, 6.8, 'MEDIO', (SELECT git status id FROM tipo_terreno WHERE nome = 'SABBIOSO'));
+VALUES (NEXT VALUE FOR SEQ_CULTIVAR, 'Carota Nantese', 'Carota', 6.0, 6.8, 'MEDIO', (SELECT id FROM tipo_terreno WHERE nome = 'SABBIOSO'));

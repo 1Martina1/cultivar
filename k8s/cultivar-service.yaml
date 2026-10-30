@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cultivar                     # il nome fisso con cui raggiungere Cultivar nel cluster
+spec:
+  selector:
+    app: cultivar                    # smista le richieste ai pod con app=cultivar
+  ports:
+    - port: 8080                     # porta del Service
+      targetPort: 8080               # porta del container
+  type: ClusterIP                    # raggiungibile solo dentro il cluster: da fuori useremo port-forward

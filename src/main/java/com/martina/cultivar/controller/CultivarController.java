@@ -215,4 +215,13 @@ public class CultivarController {
         return cultivarService.cultivarDelterrenoCheSopportanoIlPh(nomeTerreno, ph);
 
     }
+
+    @GetMapping("/riepilogo-terreni")
+    @Operation(summary = "Per ogni terreno, un riepilogo delle cultivar che ci crescono", description = "Per ogni terreno, un riepilogo delle cultivar che ci crescono: quante sono, il loro pH massimo medio e i loro nomi. I terreni con più cultivar vanno per primi.")
+    @ApiResponse(responseCode = "200", description = "Ok")
+    public List<RiepilogoTerrenoDto> riepilogoCultivarPerTerreno() {
+
+        return cultivarService.riepilogoCultivarPerTerreno();
+
+    }
 }

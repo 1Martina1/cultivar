@@ -17,13 +17,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/cultivar")
 @RequiredArgsConstructor
-@Tag(name = "Progetto cultivar", description = "Usiamo Intellij e tante tecnologie simpatiche ma con troppi nomi stressanti da imparare")
+@Tag(name = "Progetto cultivar", description = "Progetto per la creazione di un piccolo negozio di cultivar in Java")
 public class CultivarController {
 
     private final CultivarService cultivarService;
 
     @GetMapping("/adatte")
-    @Operation(summary = "Metodo per recuperare le cultivar adatte in base al tipo di terreno ricevuto", description = "ooooh nanni, o icchè lo so io")
+    @Operation(summary = "Metodo per recuperare le cultivar adatte in base al tipo di terreno ricevuto", description = "Metodo per recuperare le cultivar adatte in base al tipo di terreno ricevuto")
     @ApiResponse(responseCode = "200", description = "Lista delle cultivar adatte")
     @ApiResponse(responseCode = "404", description = "Tipo di terreno non trovato")
     public List<CultivarDto> pianteAdatte(@Parameter(description = "E' il tipo di terreno", example = "stallatico aka merda") @RequestParam("terreno") String nomeTerreno, @Parameter(description = "E' il ph del terreno", example = "per le zone intime ph neutro-leggermente acido") @RequestParam Double ph){
@@ -33,7 +33,7 @@ public class CultivarController {
     }
 
     @PostMapping("")
-    @Operation(summary = "Metodo per inserire nuove cultivar", description = "ooooh nanni, o icchè lo so io")
+    @Operation(summary = "Metodo per inserire nuove cultivar", description = "Metodo per inserire nuove cultivar")
     @ApiResponse(responseCode = "200")
     @ApiResponse(responseCode = "404", description = "Inserimento cultivar non effettuato")
     @ApiResponse(responseCode = "400", description = "Inserimento con dati errati")

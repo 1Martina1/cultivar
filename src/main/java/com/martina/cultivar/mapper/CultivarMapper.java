@@ -36,5 +36,4 @@ public interface CultivarMapper {
     @Mapping(target = "tipoTerreno", source = "terreno")
     void dtoETerrenoToCultivar(ModificaParzialeCultivarDto dto, TipoTerreno terreno, @MappingTarget Cultivar cultivar);
 
-    PhTerrenoDto dataToPhTerrenoDto(String terreno, Double phMaxPiuAlto, Double phMinPiuBasso, String cultivarPhMaxPiuAlto, String cultivarPhMinPiuBasso);
 }

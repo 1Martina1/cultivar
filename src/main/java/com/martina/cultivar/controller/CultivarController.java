@@ -224,4 +224,13 @@ public class CultivarController {
         return cultivarService.riepilogoCultivarPerTerreno();
 
     }
+
+    @GetMapping("/catalogo-terreni")
+    @Operation(summary = "Restituisce tutti i terreni, ciascuno con la sua descrizione e l’elenco delle cultivar che ci crescono.", description = "Restituisce tutti i terreni, ciascuno con la sua descrizione e l’elenco delle cultivar che ci crescono. Serve al front-end per mostrare il catalogo del negozio diviso per tipo di terreno. Anche i terreni senza cultivar devono comparire, con l’elenco vuoto.")
+    @ApiResponse(responseCode = "200", description = "Ok")
+    public List<CatalogoTerrenoDto> catalogoTerreni() {
+
+        return cultivarService.catalogoTerreni();
+
+    }
 }

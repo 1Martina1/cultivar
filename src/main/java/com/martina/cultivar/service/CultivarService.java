@@ -642,6 +642,40 @@ public class CultivarService {
 
     };
 
+    @Transactional(readOnly = true)
+    public List<CatalogoTerrenoDto> catalogoTerreni() {
 
+        List<TipoTerreno> tipiTerreno = tipoTerrenoRepository.findAllConCultivar();
+
+        return tipiTerreno.stream().map(t -> {
+
+            CatalogoTerrenoDto catalogoTerrenoDto = new CatalogoTerrenoDto();
+            catalogoTerrenoDto.setNomeTerreno(t.getNome());
+
+            catalogoTerrenoDto.setDescrizione(
+                    Optional.ofNullable(t.getDescrizione())                   // metto la descrizione nella "scatola": vuota se è null
+                            .orElse("Descrizione non disponibile"));    // se la scatola è vuota uso il testo di riserva, altrimenti la descrizione
+
+            catalogoTerrenoDto.setNumeroCultivar(t.getCultivars().stream().count());
+
+            List<CultivarCatalogoDto> catalogoDtos = t.getCultivars().stream()   // scorro le cultivar di QUESTO terreno, una alla volta
+                    .map(c -> {                                                   // per ogni cultivar c...
+                        CultivarCatalogoDto cultivarCatalogoDto = new CultivarCatalogoDto();   // ...creo il SUO DTO piccolo
+                        cultivarCatalogoDto.setNome(c.getNome());                 // UN nome: quello di questa cultivar
+                        cultivarCatalogoDto.setSpecie(c.getSpecie());             // UNA specie: quella di questa cultivar
+                        return cultivarCatalogoDto;                               // consegno il DTO piccolo
+                    })
+                    .sorted(Comparator.comparing(CultivarCatalogoDto::getNome))   // ordino i DTO piccoli per nome A→Z (il map ha consegnato CultivarCatalogoDto)
+                    .toList();                                                    // raccolgo i DTO piccoli in una lista
+
+            catalogoTerrenoDto.setCatalogoDtos(catalogoDtos);
+
+            return catalogoTerrenoDto;
+
+        })
+        .sorted(Comparator.comparing(CatalogoTerrenoDto::getNomeTerreno))   // ordino i CatalogoTerrenoDto per nome del terreno, A→Z
+        .toList();                                                          // raccolgo i DTO in una lista
+
+    };
 
 }

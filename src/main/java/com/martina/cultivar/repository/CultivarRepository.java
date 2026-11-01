@@ -14,9 +14,6 @@ public interface CultivarRepository extends JpaRepository<Cultivar, Long> {
     @Query("SELECT c FROM Cultivar c WHERE UPPER(c.tipoTerreno.nome) = UPPER(:nome) AND :ph BETWEEN c.phMin AND c.phMax")
     List<Cultivar> findAdatte(@Param("nome") String nome, @Param("ph") Double ph);
 
-    @Query("SELECT c FROM Cultivar c JOIN FETCH c.tipoTerreno")   // tutte le cultivar + il loro terreno, in UNA query
-    List<Cultivar> findAllConTerreno();
-
     List<Cultivar> findByTipoTerrenoNomeIgnoreCase(String nomeTerreno);
 
     List<Cultivar> findBySpecieIgnoreCase(String nomeSpecie);

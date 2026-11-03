@@ -1,4 +1,4 @@
-# Parti da un'immagine base che ha già Java 21 dentro
+# Parti da un'immagine base che ha già Java 25 dentro
 FROM eclipse-temurin:25-jre
 
 # Copia dentro il mio jar e chiamalo app.jar

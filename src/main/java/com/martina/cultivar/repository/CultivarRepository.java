@@ -18,5 +18,7 @@ public interface CultivarRepository extends JpaRepository<Cultivar, Long> {
 
     List<Cultivar> findBySpecieIgnoreCase(String nomeSpecie);
 
+    Boolean existsByNomeIgnoreCase(String nomeCultivar);
+
 
 }

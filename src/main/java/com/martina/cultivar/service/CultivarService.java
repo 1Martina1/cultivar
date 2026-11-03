@@ -7,6 +7,7 @@ import com.martina.cultivar.entity.Cultivar;
 import com.martina.cultivar.entity.FabbisognoIdrico;
 import com.martina.cultivar.entity.TipoTerreno;
 import com.martina.cultivar.exception.CultivarNotFoundException;
+import com.martina.cultivar.exception.NomeCultivarGiaPresente;
 import com.martina.cultivar.exception.PhNonValidoException;
 import com.martina.cultivar.exception.TipoTerrenoNotFoundException;
 import com.martina.cultivar.mapper.CultivarMapper;
@@ -678,4 +679,38 @@ public class CultivarService {
 
     };
 
+    @Transactional
+    public CultivarDettaglioDto creaCultivar(CultivarCreaDto cultivarCreaDto) {
+
+        TipoTerreno tipoTerreno = tipoTerrenoRepository.findByNomeIgnoreCase(cultivarCreaDto.getNomeTerreno())
+                .orElseThrow(() -> new TipoTerrenoNotFoundException("Terreno " + cultivarCreaDto.getNomeTerreno() + " non trovato"));
+
+        if(cultivarRepository.existsByNomeIgnoreCase(cultivarCreaDto.getNome())){
+            throw new NomeCultivarGiaPresente("La cultivar " + cultivarCreaDto.getNome() + " esiste già");
+        }
+
+        if(cultivarCreaDto.getPhMin() > cultivarCreaDto.getPhMax()){
+            throw new PhNonValidoException("Il pH minimo non può essere maggiore del massimo");
+        }
+
+        Cultivar cultivar = new Cultivar();
+        cultivar.setNome(cultivarCreaDto.getNome());
+        cultivar.setSpecie(cultivarCreaDto.getSpecie());
+        cultivar.setPhMin(cultivarCreaDto.getPhMin() );
+        cultivar.setPhMax(cultivarCreaDto.getPhMax());
+        cultivar.setFabbisognoIdrico(cultivarCreaDto.getFabbisognoIdrico());
+        cultivar.setTipoTerreno(tipoTerreno);
+
+        Cultivar cultivarSalvata = cultivarRepository.save(cultivar);
+
+        CultivarDettaglioDto cultivarDettaglioDto  = new CultivarDettaglioDto();
+        cultivarDettaglioDto.setId(cultivarSalvata.getId());
+        cultivarDettaglioDto.setNome(cultivarSalvata.getNome());
+        cultivarDettaglioDto.setSpecie(cultivarSalvata.getSpecie());
+        cultivarDettaglioDto.setNomeTerreno(cultivarSalvata.getTipoTerreno().getNome());
+        cultivarDettaglioDto.setIntervalloPh(cultivarSalvata.getPhMin() + " - " + cultivarSalvata.getPhMax());
+        cultivarDettaglioDto.setFabbisognoIdrico(cultivarSalvata.getFabbisognoIdrico().toString());
+
+        return cultivarDettaglioDto;
+    };
 }

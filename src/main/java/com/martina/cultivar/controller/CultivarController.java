@@ -233,4 +233,17 @@ public class CultivarController {
         return cultivarService.catalogoTerreni();
 
     }
+
+    @PostMapping("")
+    @Operation(summary = "il gestore del negozio aggiunge una nuova cultivar al catalogo.", description = "il gestore del negozio aggiunge una nuova cultivar al catalogo.")
+    @ApiResponse(responseCode = "201", description = "Cultivar creata")
+    @ApiResponse(responseCode = "404", description = "Terreno inesistente")
+    @ApiResponse(responseCode = "400", description = "Dati non validi")
+    @ApiResponse(responseCode = "409", description = "Nome già presente")
+    @ResponseStatus(HttpStatus.CREATED)
+    public CultivarDettaglioDto creaCultivar (@Valid @RequestBody CultivarCreaDto cultivarCreaDto){
+
+        return cultivarService.creaCultivar(cultivarCreaDto);
+
+    }
 }

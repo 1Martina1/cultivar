@@ -246,4 +246,13 @@ public class CultivarController {
         return cultivarService.creaCultivar(cultivarCreaDto);
 
     }
+
+    @GetMapping("/catalogo")
+    @Operation(summary = "Il negozio mostra il catalogo una pagina alla volta, in ordine alfabetico. Si può filtrare per specie.", description = "")
+    @ApiResponse(responseCode = "200", description = "Ok")
+    public PaginaCultivarDto catalogo(@RequestParam String specie, int pagina, int dimensione) {
+
+        return cultivarService.catalogo(specie, pagina, dimensione);
+
+    }
 }

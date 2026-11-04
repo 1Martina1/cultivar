@@ -1,6 +1,8 @@
 package com.martina.cultivar.repository;
 
 import com.martina.cultivar.entity.Cultivar;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -20,5 +22,5 @@ public interface CultivarRepository extends JpaRepository<Cultivar, Long> {
 
     Boolean existsByNomeIgnoreCase(String nomeCultivar);
 
-
+    Page<Cultivar> findBySpecieIgnoreCase(String specie, Pageable pageable);
 }

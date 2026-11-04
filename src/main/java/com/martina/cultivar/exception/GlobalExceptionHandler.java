@@ -91,6 +91,15 @@ public class GlobalExceptionHandler {
                 .body(ex.getMessage());
     }
 
+    @ExceptionHandler(PaginaNonValidaException.class)
+    public ResponseEntity<String> gestisciNumeroPaginaNonValido(PaginaNonValidaException ex) {
+        log.warn("400 - {}", ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ex.getMessage());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)                    // scatta quando @Valid trova un campo non valido
     public ResponseEntity<String> gestisciDatiNonValidi(MethodArgumentNotValidException ex) {
 

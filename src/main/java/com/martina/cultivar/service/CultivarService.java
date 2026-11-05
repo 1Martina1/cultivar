@@ -6,14 +6,15 @@ import com.martina.cultivar.dto.*;
 import com.martina.cultivar.entity.Cultivar;
 import com.martina.cultivar.entity.FabbisognoIdrico;
 import com.martina.cultivar.entity.TipoTerreno;
-import com.martina.cultivar.exception.CultivarNotFoundException;
-import com.martina.cultivar.exception.PhNonValidoException;
-import com.martina.cultivar.exception.TipoTerrenoNotFoundException;
+import com.martina.cultivar.exception.*;
 import com.martina.cultivar.mapper.CultivarMapper;
 import com.martina.cultivar.repository.CultivarRepository;
 import com.martina.cultivar.repository.TipoTerrenoRepository;
-import com.martina.cultivar.vivaio.dto.DaRiordinare;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -678,4 +679,80 @@ public class CultivarService {
 
     };
 
+    @Transactional
+    public CultivarDettaglioDto creaCultivar(CultivarCreaDto cultivarCreaDto) {
+
+        TipoTerreno tipoTerreno = tipoTerrenoRepository.findByNomeIgnoreCase(cultivarCreaDto.getNomeTerreno())
+                .orElseThrow(() -> new TipoTerrenoNotFoundException("Terreno " + cultivarCreaDto.getNomeTerreno() + " non trovato"));
+
+        if(cultivarRepository.existsByNomeIgnoreCase(cultivarCreaDto.getNome())){
+            throw new NomeCultivarGiaPresente("La cultivar " + cultivarCreaDto.getNome() + " esiste già");
+        }
+
+        if(cultivarCreaDto.getPhMin() > cultivarCreaDto.getPhMax()){
+            throw new PhNonValidoException("Il pH minimo non può essere maggiore del massimo");
+        }
+
+        Cultivar cultivar = new Cultivar();
+        cultivar.setNome(cultivarCreaDto.getNome());
+        cultivar.setSpecie(cultivarCreaDto.getSpecie());
+        cultivar.setPhMin(cultivarCreaDto.getPhMin() );
+        cultivar.setPhMax(cultivarCreaDto.getPhMax());
+        cultivar.setFabbisognoIdrico(cultivarCreaDto.getFabbisognoIdrico());
+        cultivar.setTipoTerreno(tipoTerreno);
+
+        Cultivar cultivarSalvata = cultivarRepository.save(cultivar);
+
+        CultivarDettaglioDto cultivarDettaglioDto  = new CultivarDettaglioDto();
+        cultivarDettaglioDto.setId(cultivarSalvata.getId());
+        cultivarDettaglioDto.setNome(cultivarSalvata.getNome());
+        cultivarDettaglioDto.setSpecie(cultivarSalvata.getSpecie());
+        cultivarDettaglioDto.setNomeTerreno(cultivarSalvata.getTipoTerreno().getNome());
+        cultivarDettaglioDto.setIntervalloPh(cultivarSalvata.getPhMin() + " - " + cultivarSalvata.getPhMax());
+        cultivarDettaglioDto.setFabbisognoIdrico(cultivarSalvata.getFabbisognoIdrico().toString());
+
+        return cultivarDettaglioDto;
+    };
+
+    @Transactional(readOnly = true)
+    public PaginaCultivarDto catalogo(String specie, int pagina, int dimensione) {
+
+        if(pagina < 0 ){
+            throw new PaginaNonValidaException("Il numero di pagina non può essere negativo");
+        }else if (dimensione < 1 || dimensione > 50){
+            throw new PaginaNonValidaException("La dimensione della pagina deve essere tra 1 e 50");
+        }
+
+        Pageable paginatutteLeCultivar = PageRequest.of(pagina, dimensione, Sort.by("nome"));
+        Page<Cultivar> tutteLeCultivar;
+
+        if(specie == null || specie.isBlank()){
+            tutteLeCultivar = cultivarRepository.findAll(paginatutteLeCultivar);
+        }else {
+            tutteLeCultivar = cultivarRepository.findBySpecieIgnoreCase(specie, paginatutteLeCultivar);
+        }
+
+        PaginaCultivarDto  paginaCultivarDto = new PaginaCultivarDto();
+
+        paginaCultivarDto.setNumeroPagina(tutteLeCultivar.getNumber());
+        paginaCultivarDto.setDimensionePagina(tutteLeCultivar.getSize());
+        paginaCultivarDto.setTotaleElementi(tutteLeCultivar.getTotalElements());
+        paginaCultivarDto.setTotalePagine(tutteLeCultivar.getTotalPages());
+
+        List<CultivarDettaglioDto> cultivarDettaglioDtoList = tutteLeCultivar.stream().map(c -> {
+                    CultivarDettaglioDto cultivarDettaglioDto = new CultivarDettaglioDto();
+                    cultivarDettaglioDto.setId(c.getId());
+                    cultivarDettaglioDto.setNome(c.getNome());
+                    cultivarDettaglioDto.setSpecie(c.getSpecie());
+                    cultivarDettaglioDto.setNomeTerreno(c.getTipoTerreno().getNome());
+                    cultivarDettaglioDto.setIntervalloPh(c.getPhMin() + " - " + c.getPhMax());
+                    cultivarDettaglioDto.setFabbisognoIdrico(c.getFabbisognoIdrico().toString());
+
+                    return cultivarDettaglioDto;
+        }).toList();
+
+        paginaCultivarDto.setConteuto(cultivarDettaglioDtoList);
+        return paginaCultivarDto;
+
+    };
 }

@@ -2,9 +2,7 @@ package com.martina.cultivar.service;
 
 import com.martina.cultivar.client.AgroLabClient;
 import com.martina.cultivar.client.dto.AnalisiTerrenoResponse;
-import com.martina.cultivar.dto.ClassificaCultivarDto;
-import com.martina.cultivar.dto.CultivarDto;
-import com.martina.cultivar.dto.RecuperaCultivarPerTerrenoDto;
+import com.martina.cultivar.dto.*;
 import com.martina.cultivar.entity.Cultivar;
 import com.martina.cultivar.entity.FabbisognoIdrico;
 import com.martina.cultivar.entity.TipoTerreno;
@@ -27,6 +25,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.martina.cultivar.entity.FabbisognoIdrico.BASSO;
+import static com.martina.cultivar.entity.FabbisognoIdrico.MEDIO;
 import static org.hibernate.validator.internal.util.Contracts.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -61,7 +60,7 @@ class CultivarServiceTest {
         cultivar.setSpecie("Vite");
         cultivar.setPhMin(6.5);
         cultivar.setPhMax(8.0);
-        cultivar.setFabbisognoIdrico(FabbisognoIdrico.MEDIO);
+        cultivar.setFabbisognoIdrico(MEDIO);
         cultivar.setTipoTerreno(terreno);
 
         when(cultivarRepository.findById(1L)).thenReturn(Optional.of(cultivar));
@@ -106,7 +105,7 @@ class CultivarServiceTest {
         cultivar.setSpecie("Vite");
         cultivar.setPhMin(1.0);
         cultivar.setPhMax(14.0);
-        cultivar.setFabbisognoIdrico(FabbisognoIdrico.MEDIO);
+        cultivar.setFabbisognoIdrico(MEDIO);
         cultivar.setTipoTerreno(terreno);
         List<Cultivar> cultivarAdatte = new ArrayList<>();
         cultivarAdatte.add(cultivar);
@@ -217,5 +216,79 @@ class CultivarServiceTest {
         cultivar.setPhMax(phMax);
         cultivar.setTipoTerreno(terreno);
         return cultivar;
+    }
+
+    @Test
+    void creaCultivar_creazioneRiuscita() {
+        CultivarCreaDto cultivarCreaDto = new CultivarCreaDto();
+        cultivarCreaDto.setNome("Sangiovese");
+        cultivarCreaDto.setSpecie("vite");
+        cultivarCreaDto.setPhMin(6.5);
+        cultivarCreaDto.setPhMax(8.0);
+        cultivarCreaDto.setFabbisognoIdrico(FabbisognoIdrico.MEDIO);
+        cultivarCreaDto.setNomeTerreno("ARGILLOSO");
+
+        TipoTerreno terreno = new TipoTerreno();
+        terreno.setNome("ARGILLOSO");
+
+        when(tipoTerrenoRepository.findByNomeIgnoreCase("ARGILLOSO")).thenReturn(Optional.of(terreno));
+
+        when(cultivarRepository.existsByNomeIgnoreCase(cultivarCreaDto.getNome())).thenReturn(false);
+
+        Cultivar cultivarSalvata = new Cultivar();
+        cultivarSalvata.setId(1L);
+        cultivarSalvata.setNome("Sangiovese");
+        cultivarSalvata.setSpecie("vite");
+        cultivarSalvata.setPhMin(6.5);
+        cultivarSalvata.setPhMax(8.0);
+        cultivarSalvata.setFabbisognoIdrico(FabbisognoIdrico.MEDIO);
+        cultivarSalvata.setTipoTerreno(terreno);
+        when(cultivarRepository.save(any(Cultivar.class))).thenReturn(cultivarSalvata);   // "quando il service salva qualunque cultivar, restituisci questa"
+
+        CultivarDettaglioDto risultato = cultivarService.creaCultivar(cultivarCreaDto);   // ESEGUO il mio codice
+        assertEquals(1L, risultato.getId());
+        assertEquals("ARGILLOSO", risultato.getNomeTerreno());
+        assertEquals("Sangiovese", risultato.getNome());
+        assertEquals("vite", risultato.getSpecie());
+        assertEquals(cultivarSalvata.getPhMin() + " - " + cultivarSalvata.getPhMax(), risultato.getIntervalloPh());
+        assertEquals("MEDIO", risultato.getFabbisognoIdrico()
+        );
+
+    }
+
+    @Test
+    void creaCultivar_terrenoInesistente() {
+        CultivarCreaDto cultivarCreaDto = new CultivarCreaDto();
+        cultivarCreaDto.setNome("Sangiovese");
+        cultivarCreaDto.setSpecie("vite");
+        cultivarCreaDto.setPhMin(6.5);
+        cultivarCreaDto.setPhMax(8.0);
+        cultivarCreaDto.setFabbisognoIdrico(MEDIO);
+        cultivarCreaDto.setNomeTerreno("ARGILLOSO");
+
+        TipoTerreno terreno = new TipoTerreno();
+        terreno.setNome("ARGILLOSO");
+
+        when(tipoTerrenoRepository.findByNomeIgnoreCase("ARGILLOSO")).thenReturn(Optional.of(terreno));
+
+        CultivarDettaglioDto cultivarDettaglioDto = new CultivarDettaglioDto();
+        cultivarDettaglioDto.setId(1L);
+        cultivarDettaglioDto.setNome("Sangiovese");
+        cultivarDettaglioDto.setSpecie("vite");
+        cultivarDettaglioDto.setNomeTerreno("ARGILLOSO");
+        cultivarDettaglioDto.setIntervalloPh("6.0 - 7.5");
+        cultivarDettaglioDto.setFabbisognoIdrico("MEDIO");
+
+
+        when(cultivarRepository.existsByNomeIgnoreCase(cultivarDettaglioDto.getNome())).thenReturn(false);
+
+        Cultivar cultivarSalvata = cultivarRepository.save(any(Cultivar.class));
+        cultivarSalvata.setId(1L);
+        cultivarDettaglioDto.setNome("Sangiovese");
+        cultivarDettaglioDto.setSpecie("vite");
+        cultivarSalvata.setPhMin(6.5);
+        cultivarSalvata.setPhMax(8.0);
+        cultivarSalvata.setFabbisognoIdrico(MEDIO);
+        cultivarSalvata.setTipoTerreno(terreno.getNome());
     }
 }
